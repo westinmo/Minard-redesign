@@ -91,7 +91,7 @@ b <- troops_sim2 %>%
 low = "#6398CD", high = "#EA9BB3"
 ```
 
-```{r, fig.height=3}
+```{r, fig.height=3.5, fig.width=5}
 ggplot() +
   # advance
   geom_bar(data = a, mapping = aes(x = X, y = survivors), stat = "identity", fill = "#a0baba")  +
@@ -100,16 +100,17 @@ ggplot() +
   scale_fill_gradient(low = "#4d5f90", high = "#c56363") +
   labs(x = "Journey from Kowno to Moscow and Back", y = "Troops", 
        fill = "Temperature (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
-  scale_x_continuous(breaks = seq(16, 16), labels = "Moscow") +
+  scale_x_continuous(breaks = c(0, 16), labels = c("Kowno", "Moscow")) +
+  scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) +
   annotate("text", label = "Retreat", x = 4.5, y = -6.5, size = 5.5) + 
   annotate("text", label = "Advance", x = 12.5, y = 25, size = 5.5) + 
   theme_wsj() +
-  theme(axis.title=element_text(size=15, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
+  theme(axis.title=element_text(size=18, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
 
 ```
 
 
-```{r, fig.height=3}
+```{r}
 ggplot() +
   # advance
   geom_bar(data = a, mapping = aes(x = X, y = survivors), stat = "identity", fill = "#a0baba")  +
@@ -121,7 +122,7 @@ ggplot() +
        sian Campaign", subtitle = "Original by Charles Minard") + 
   scale_x_continuous(breaks = c(0, 16), labels = c("Kowno", "Moscow")) +
   scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) + 
-  annotate("text", label = "Retreat", x = 4.5, y = -6.5, size = 5.5) + 
+  annotate("text", label = "Retreat", x = 5.5, y = -6.5, size = 5.5) + 
   annotate("text", label = "Advance", x = 12.5, y = 25, size = 5.5) + 
   theme_wsj() +
   theme(axis.title=element_text(size=15, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
