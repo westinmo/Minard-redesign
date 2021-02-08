@@ -117,7 +117,8 @@ ggplot() +
   geom_bar(data = b, mapping = aes(x = X, y = survivors, fill = temperature), stat = "identity") + 
   scale_fill_gradient(low = "#4d5f90", high = "#c56363") +
   labs(x = "Journey from Kowno to Moscow and Back", y = "Troops", 
-       fill = "Temperature (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
+       fill = "Temperature (°C)", color = "Direction", title = "Napoleon's Rus
+       sian Campaign", subtitle = "Original by Charles Minard") + 
   scale_x_continuous(breaks = c(0, 16), labels = c("Kowno", "Moscow")) +
   scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) + 
   annotate("text", label = "Retreat", x = 4.5, y = -6.5, size = 5.5) + 
