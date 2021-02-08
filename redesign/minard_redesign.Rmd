@@ -1,0 +1,128 @@
+---
+title: "Minard Redesign"
+author: "Morgaine Westin"
+thanks: "Code and data are available at: https://github.com/westinmo/Minard-redesign"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  bookdown::pdf_document2:
+    fig_caption: yes
+header-includes: #allows you to add in your own Latex packages
+- \usepackage{float} #use the 'float' package
+- \floatplacement{figure}{H} #make every figure with caption = h
+- \usepackage{longtable}
+toc: FALSE
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+library(wesanderson)
+library(ggplot2)
+library(ggthemes)
+```
+
+## R Markdown
+
+```{r cars}
+update_geom_font_defaults()
+
+troops <- as.data.frame(read.table(here("data/troops.txt"), header = T))
+
+scale <- function(x) {
+  (x / 1000)
+} #create function to scale down troop size
+
+troops$survivors <- scale(troops$survivors)
+```
+
+
+```{r, fig.height = 3}
+troops_sim <- read.csv(here("data/troops_sim.csv"), header = T)
+
+ggplot(troops_sim) +
+  geom_bar(mapping = aes(x = Index, y = survivors, fill = direction), stat = "identity") +
+  coord_polar(start = 0) +
+  scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
+
+ggplot(troops_sim) +
+  geom_bar(mapping = aes(x = Index, y = survivors, fill = direction), stat = "identity") +
+scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
+```
+
+```{r}
+troops_sim2 <- read.csv(here("data/troops_sim_new.csv"), header = T)
+
+troops_sim2 %>% filter(group == 1) %>%
+  filter(direction == 'R' | direction == "A") %>%
+ggplot() +
+  geom_bar(mapping = aes(x = X, y = survivors, fill = direction), stat = "identity") +
+  scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Retreat", "Advance")) +
+  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Latitude", y = "Survivors", fill = "Direction")
+```
+
+```{r}
+troops_sim2 <- troops_sim2 %>%
+  bind_rows(troops_sim2 %>% filter(direction == 'R') %>%
+              mutate(survivors = -survivors, direction = "-R")) 
+#"inverting" the survivor counts for the retreat to simulate a mirror bar chart
+```
+
+
+```{r}
+troops_sim2 %>% filter(group == 1) %>%
+  filter(direction == '-R' | direction == "A") %>%
+ggplot() +
+  geom_bar(mapping = aes(x = X, y = survivors, fill = direction), stat = "identity") +
+  scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Retreat", "Advance")) +
+  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Journey from Kowno to Moscow", y = "Survivors", fill = "Direction") + 
+  scale_x_discrete(labels =  SoilSciGuylabs) + scale_x_continuous(breaks = seq(16, 16), labels = "Moscow") 
+
+```
+
+```{r}
+a <- troops_sim2 %>% filter(direction == "A") %>%
+  filter(group == 1)
+b <- troops_sim2 %>%
+  filter(group == 1 & direction == '-R')
+
+
+low = "#6398CD", high = "#EA9BB3"
+```
+
+```{r, fig.height=3}
+ggplot() +
+  # advance
+  geom_bar(data = a, mapping = aes(x = X, y = survivors), stat = "identity", fill = "#a0baba")  +
+  # retreat
+  geom_bar(data = b, mapping = aes(x = X, y = survivors, fill = temperature), stat = "identity") + 
+  scale_fill_gradient(low = "#4d5f90", high = "#c56363") +
+  labs(x = "Journey from Kowno to Moscow and Back", y = "Troops", 
+       fill = "Temperature (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
+  scale_x_continuous(breaks = seq(16, 16), labels = "Moscow") +
+  annotate("text", label = "Retreat", x = 4.5, y = -6.5, size = 5.5) + 
+  annotate("text", label = "Advance", x = 12.5, y = 25, size = 5.5) + 
+  theme_wsj() +
+  theme(axis.title=element_text(size=15, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
+
+```
+
+
+```{r, fig.height=3}
+ggplot() +
+  # advance
+  geom_bar(data = a, mapping = aes(x = X, y = survivors), stat = "identity", fill = "#a0baba")  +
+  # retreat
+  geom_bar(data = b, mapping = aes(x = X, y = survivors, fill = temperature), stat = "identity") + 
+  scale_fill_gradient(low = "#4d5f90", high = "#c56363") +
+  labs(x = "Journey from Kowno to Moscow and Back", y = "Troops", 
+       fill = "Temperature (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
+  scale_x_continuous(breaks = c(0, 16), labels = c("Kowno", "Moscow")) +
+  scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) + 
+  annotate("text", label = "Retreat", x = 4.5, y = -6.5, size = 5.5) + 
+  annotate("text", label = "Advance", x = 12.5, y = 25, size = 5.5) + 
+  theme_wsj() +
+  theme(axis.title=element_text(size=15, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
+```
+
