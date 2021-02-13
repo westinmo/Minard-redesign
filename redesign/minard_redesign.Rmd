@@ -18,8 +18,10 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
+#install.packages("wesanderson")
 library(wesanderson)
 library(ggplot2)
+#install.packages("ggthemes")
 library(ggthemes)
 #install.packages("tufte")
 library(tufte)
@@ -29,13 +31,15 @@ library(tufte)
 
 ```{r, echo = FALSE}
 troops <- as.data.frame(read.table(here("data/troops.txt"), header = T))
-
-scale <- function(x) {
-  (x / 1000)
-} #create function to scale down troop size
-
-troops$survivors <- scale(troops$survivors)
 ```
+
+
+```{r, echo = FALSE}
+troops %>% filter(group == '1') %>%
+ggplot() + geom_bar(mapping = aes(x = long, y = survivors, fill = direction), stat = "identity") +
+  scale_fill_manual(values = wes_palette("GrandBudapest1", 2), labels = c("Advance", "Retreat"))
+```
+
 
 
 FSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDS
@@ -45,12 +49,12 @@ troops_sim <- read.csv(here("data/troops_sim.csv"), header = T)
 
 ggplot(troops_sim) +
   geom_bar(mapping = aes(x = Index, y = survivors, fill = direction), stat = "identity") +
-  coord_polar(start = 0) +
-  scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
+scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
 
 ggplot(troops_sim) +
   geom_bar(mapping = aes(x = Index, y = survivors, fill = direction), stat = "identity") +
-scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
+  coord_polar(start = 0) +
+  scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
 ```
 
 
@@ -64,7 +68,7 @@ troops_sim2 %>% filter(group == 1) %>%
 ggplot() +
   geom_bar(mapping = aes(x = X, y = survivors, fill = direction), stat = "identity") +
   scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Retreat", "Advance")) +
-  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Latitude", y = "Survivors", fill = "Direction")
+  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Index", y = "Survivors", fill = "Direction")
 ```
 
 ```{r, echo=FALSE}
@@ -103,7 +107,7 @@ ggplot() +
   # retreat
   geom_bar(data = b, mapping = aes(x = X, y = survivors, fill = temperature), stat = "identity") + 
   scale_fill_gradient(low = "#4d5f90", high = "#bf7c7c") +
-  labs(x = "Journey from Kowno to Moscow and Back", y = "Troops", 
+  labs(x = "Journey from Kaunas to Moscow and Back", y = "Troops", 
        fill = "Temperature During Retreat (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
   scale_x_continuous(breaks = c(1, 16), labels = c("Kaunas", "Moscow")) +
   scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) +
