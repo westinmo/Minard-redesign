@@ -3,8 +3,12 @@ title: "Minard Redesign"
 author: "Morgaine Westin"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output:
-  tufte::tufte_handout: default
-  fig_caption: yes
+  pdf_document:
+    citation_package: natbib
+    keep_tex: true
+    fig_caption: true
+    latex_engine: pdflatex
+    template: ~/data/svm-latex-ms.tex
 thanks: 'Code and data are available at: https://github.com/westinmo/Minard-redesign'
 header-includes:
 - \usepackage{float}
@@ -23,8 +27,8 @@ library(wesanderson)
 library(ggplot2)
 #install.packages("ggthemes")
 library(ggthemes)
-#install.packages("tufte")
-library(tufte)
+#install.packages("stevetemplates")
+library(stevetemplates)
 ```
 
 ## R Markdown
@@ -42,8 +46,6 @@ ggplot() + geom_bar(mapping = aes(x = long, y = survivors, fill = direction), st
 
 
 
-FSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDS
-
 ```{r, fig.height = 3, echo=FALSE, fig.margin=TRUE}
 troops_sim <- read.csv(here("data/troops_sim.csv"), header = T)
 
@@ -58,8 +60,6 @@ ggplot(troops_sim) +
 ```
 
 
-FSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDS
-
 ```{r, echo=FALSE, fig.margin=TRUE}
 troops_sim2 <- read.csv(here("data/troops_sim_new.csv"), header = T)
 
@@ -71,16 +71,13 @@ ggplot() +
   guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Index", y = "Survivors", fill = "Direction")
 ```
 
-```{r, echo=FALSE}
+
+```{r, echo=FALSE, fig.margin=TRUE}
 troops_sim2 <- troops_sim2 %>%
   bind_rows(troops_sim2 %>% filter(direction == 'R') %>%
               mutate(survivors = -survivors, direction = "-R")) 
 #"inverting" the survivor counts for the retreat to simulate a mirror bar chart
-```
 
-FSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDS
-
-```{r, echo=FALSE, fig.margin=TRUE}
 troops_sim2 %>% filter(group == 1) %>%
   filter(direction == '-R' | direction == "A") %>%
 ggplot() +
@@ -88,31 +85,33 @@ ggplot() +
   scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Retreat", "Advance")) +
   guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Journey from Kowno to Moscow", y = "Survivors", fill = "Direction") + 
   scale_x_continuous(breaks = seq(16, 16), labels = "Moscow") 
-
-```
-
-```{r, echo=FALSE}
-a <- troops_sim2 %>% filter(direction == "A") %>%
-  filter(group == 1)
-b <- troops_sim2 %>%
-  filter(group == 1 & direction == '-R')
 ```
 
 FSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDS
 
 ```{r, fig.height=8, fig.width=10,echo=FALSE, fig.fullwidth=TRUE}
+#creating two separate datasets for each direction to combine in one plot
+a <- troops_sim2 %>% filter(direction == "A") %>%
+  filter(group == 1)
+b <- troops_sim2 %>%
+  filter(group == 1 & direction == '-R')
+
 ggplot() +
   # advance
   geom_bar(data = a, mapping = aes(x = X, y = survivors), stat = "identity", fill = "#a0baba")  +
   # retreat
   geom_bar(data = b, mapping = aes(x = X, y = survivors, fill = temperature), stat = "identity") + 
   scale_fill_gradient(low = "#4d5f90", high = "#bf7c7c") +
+  #labels
   labs(x = "Journey from Kaunas to Moscow and Back", y = "Troops", 
        fill = "Temperature During Retreat (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
+  #scale labels
   scale_x_continuous(breaks = c(1, 16), labels = c("Kaunas", "Moscow")) +
   scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) +
+  #annotations
   annotate("text", label = "Retreat", x = 5, y = -6.5, size = 5.5) + 
   annotate("text", label = "Advance", x = 12.5, y = 25, size = 5.5) + 
+  #theme
   theme_wsj() +
   theme(axis.title=element_text(size=18, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
 
