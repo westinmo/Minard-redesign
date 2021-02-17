@@ -1,20 +1,18 @@
 ---
-title: "Minard Redesign"
+title: "Redesigning Charles Minard's Map of Napoleon's Russian campaign"
 author: "Morgaine Westin"
 date: "`r format(Sys.time(), '%d %B %Y')`"
+geometry: margin=0.75in
 output:
-  pdf_document:
-    citation_package: natbib
-    keep_tex: true
-    fig_caption: true
-    latex_engine: pdflatex
-    template: ~/data/svm-latex-ms.tex
+  bookdown::pdf_document2:
+    fig_caption: yes
+    toc: false
+  pdf_document: default
 thanks: 'Code and data are available at: https://github.com/westinmo/Minard-redesign'
 header-includes:
 - \usepackage{float}
 - \floatplacement{figure}{H}
 - \usepackage{longtable}
-toc: no
 bibliography: references.bib
 ---
 
@@ -22,89 +20,105 @@ bibliography: references.bib
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(here)
-#install.packages("wesanderson")
 library(wesanderson)
 library(ggplot2)
-#install.packages("ggthemes")
 library(ggthemes)
-#install.packages("stevetemplates")
-library(stevetemplates)
+library(tinytex)
+library(bookdown)
+library(knitr)
+library(gridExtra)
 ```
 
-## R Markdown
+## Introduction
 
-```{r, echo = FALSE}
+One of his last creations before his death in 1870, Charles Joseph Minard’s map of Napoleon’s invasion of Russia has been hailed as one of the “best statistical graphics ever drawn” [@tufte2001visual]. Pictured below in Figure \@ref(fig:original)^[Public domain image from http://en.wikipedia.org/wiki/File:Minard.png.], Minard’s map is a graphical representation of the Grande Armée’s attack and subsequent retreat from Russia in 1812, and highlights the successive losses the army endured during this campaign. The graph displays six main types of information about the campaign: the number of troops, labeled and represented by the width of the bands, the distance travelled, the direction of travel indicated by colour, latitude and longitude, temperatures during the retreat, and dates in relation to the temperatures [@friendly2002visions]. Notably, the graphic makes no mention of Napoleon himself, instead focusing on the journey and sacrifices of the soldiers [@corbett2001charles]. This report documents my process of redesigning Minard’s original graphic in R [@citeR], using data made available from Leland Wilkinson’s website for his book *The Grammar of Graphics* [@Wilkinson2005]. 
+
+```{r original, fig.cap="Carte figurative des pertes successives en hommes de l'Armée Française dans la campagne de Russie 1812–1813 - Charles Minard", fig.post = "H", echo = FALSE, fig.hesight=8, fig.height=10, out.width="100%"}
+knitr::include_graphics("minard_original.png")
+```
+
+
+## Design Process
+
+When approaching how to redesign Minard’s work, my initial instinct was to find a way to simply recreate the original graph with upgraded graphics on R. However, given the popularity of Minard’s visualization, this has been done many times, and was even demonstrated by Hadley Wickham in his original article introducing ggplot2 in R [@wickham2010layered]. I instead focused on trying to visualize the information in another graphical form. Similar to how Minard wanted to highlight the sacrifices made during the campaign, I wanted the primary focus of my redesign to be the lives lost over the course of the journey. To represent this, I chose the bar chart as the basis of my redesign, since it is widely recognizable and often used to map deaths over time. 
+
+My starting point was to plot the decrease in survivors by longitude, to demonstrate the losses as the campaign travelled east towards Moscow. This was done using the data provided by Wilkinson [@Wilkinson2005], which contained information about the troops, attack groups, longitude and latitude, temperatures and cities used to recreate Minard’s visualization. Notably, while the original visualization contained the routes of three different groups, the main attack group, and the two smaller groups who took different routes, I chose to only focus on the troop data from the main group. My reasoning for this choice is that I wanted to focus on the overall loss of life on a higher level, which was best represented by the troop numbers for the main attack group. The first design is pictured below in figure \@ref(fig:design1)^[Colour Palettes used in Figures 2, 3, and 4, are from the `wesanderson` package [@wes]]. 
+
+```{r design1, fig.cap="First Design Iteration: Loss of Troops by Longitude", fig.post = "H", echo = FALSE, fig.height=4, fig.width=6}
 troops <- as.data.frame(read.table(here("data/troops.txt"), header = T))
-```
 
-
-```{r, echo = FALSE}
 troops %>% filter(group == '1') %>%
 ggplot() + geom_bar(mapping = aes(x = long, y = survivors, fill = direction), stat = "identity") +
-  scale_fill_manual(values = wes_palette("GrandBudapest1", 2), labels = c("Advance", "Retreat"))
+  scale_fill_manual(values = wes_palette("GrandBudapest1", 2), labels = c("Advance", "Retreat")) + labs(x = "Longitude", y = "Troops", fill = "Direction") 
 ```
 
+This plot shows a clear decrease in troops throughout the campaign as longitude increased, and again as longitude decreased while the troops retreated. However, the scattered distribution and large gaps between bars gave the impression that longitude might be too granular to use as the x-axis for what I hoped would be a simple bar graph. For the sake of simplicity, I decided to create a new dataset based on the original data. I retained the number of troops in each row for the main attack group, but created consecutive indices for each row to use as an x-axis instead of longitude. These indices were meant to roughly represent the distance travelled and the passage in time since the army departed, but in a simplified and standardized fashion so the troops loss over the course of the campaign could be represented more clearly. Two bar graphs were created based on this updated data and are pictured in Figure \@ref(fig:design2). 
 
 
-```{r, fig.height = 3, echo=FALSE, fig.margin=TRUE}
+```{r design2, fig.cap="Second Design Iteration: Troops Lost over the Course of the Campaign", fig.post = "H", echo = FALSE, fig.width=5, fig.height=7}
 troops_sim <- read.csv(here("data/troops_sim.csv"), header = T)
 
-ggplot(troops_sim) +
+plot1 <- ggplot(troops_sim) +
   geom_bar(mapping = aes(x = Index, y = survivors, fill = direction), stat = "identity") +
-scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
+scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat")) + labs(x = "Time Since Army Departed", y = "Troops", fill = "Direction")
 
-ggplot(troops_sim) +
+plot2 <-ggplot(troops_sim) +
   geom_bar(mapping = aes(x = Index, y = survivors, fill = direction), stat = "identity") +
   coord_polar(start = 0) +
-  scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat"))
+  scale_fill_manual(values = wes_palette("Royal1", 2), labels = c("Advance", "Retreat")) + labs(x = "Time Since Army Departed", y = "Troops", fill = "Direction")
+
+grid.arrange(plot1, plot2, nrow=2)
 ```
 
+The visualization on the top plots troops on the y-axis, the new indices created on the x-axis, with colour representing the campaign’s direction. The second visualization on the bottom depicts the same data, however the bar chart is placed on a polar plane instead of the standard cartesian plane. I wanted to play around with the idea of a circular graph based on my thoughts that the campaign was a cyclical journey rather than a linear one since the troops go around and eventually return where they started. However, the gradual loss of troops throughout the campaign is much more pronounced in the standard bar graph rather than the circular one. 
 
-```{r, echo=FALSE, fig.margin=TRUE}
+To retain the clear depiction of loss of troops found in the first bar graph, while avoiding giving the impression that the campaign was a one-way linear journey, I decided to test a mirrored bar chart for my next visualization. The idea to use a mirrored bar chart was inspired by Minard’s original visualization, where the path on the top half of the map depicted the journey of the troops attacking, and the bottom half depicted the journey of the troops retreating, almost in parallel format. Based on the line width, this allowed for a clear comparison of how many troops had comparatively been lost between the attack and retreat at similar longitudinal points on the map. To replicate this effect using a mirrored bar chart, I adjusted the indices used as the x-axis in the previous graphs to match each row of troops from the attack phase to a corresponding row of troops from the retreat phase. For example, the number of troops at the very beginning of the campaign had the same index as the final number of troops after the campaign returned. This allows the viewer to make a direct comparison between the number of troops at the beginning of the campaign, and the number of troops at the "end" of the campaign, similar to what the contrast in line width on the left hand side of Minard's original graph conveys. Two plots were created using these new indices as the x-axis, one using a standard stacked bar chart method, and the other simulating a mirrored bar chart flipped over the x-axis. Both plots are shown in Figure \@ref(fig:design3) 
+
+```{r design3, fig.cap="Third Design Iteration: Stacked and Mirrored Bar Charts", fig.post = "H", echo = FALSE, fig.height=6, fig.width=5}
 troops_sim2 <- read.csv(here("data/troops_sim_new.csv"), header = T)
 
-troops_sim2 %>% filter(group == 1) %>%
-  filter(direction == 'R' | direction == "A") %>%
-ggplot() +
-  geom_bar(mapping = aes(x = X, y = survivors, fill = direction), stat = "identity") +
-  scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Retreat", "Advance")) +
-  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Index", y = "Survivors", fill = "Direction")
-```
-
-
-```{r, echo=FALSE, fig.margin=TRUE}
 troops_sim2 <- troops_sim2 %>%
   bind_rows(troops_sim2 %>% filter(direction == 'R') %>%
               mutate(survivors = -survivors, direction = "-R")) 
 #"inverting" the survivor counts for the retreat to simulate a mirror bar chart
 
-troops_sim2 %>% filter(group == 1) %>%
+plot3 <- troops_sim2 %>% filter(group == 1) %>%
+  filter(direction == 'R' | direction == "A") %>%
+ggplot() +
+  geom_bar(mapping = aes(x = X, y = survivors, fill = direction), stat = "identity") +
+  scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Advance", "Retreat")) +
+  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Journey from Kowno to Moscow", y = "Survivors", fill = "Direction") + 
+  scale_x_continuous(breaks = c(1, 16), labels = c("Kaunas", "Moscow")) 
+
+plot4 <- troops_sim2 %>% filter(group == 1) %>%
   filter(direction == '-R' | direction == "A") %>%
 ggplot() +
   geom_bar(mapping = aes(x = X, y = survivors, fill = direction), stat = "identity") +
   scale_fill_manual(values = wes_palette("GrandBudapest2", 2), labels = c("Retreat", "Advance")) +
-  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Journey from Kowno to Moscow", y = "Survivors", fill = "Direction") + 
-  scale_x_continuous(breaks = seq(16, 16), labels = "Moscow") 
+  guides(fill = guide_legend(reverse = TRUE)) + labs(x = "Journey from Kaunas to Moscow", y = "Survivors", fill = "Direction") + 
+  scale_x_continuous(breaks = c(1, 16), labels = c("Kaunas", "Moscow")) + scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("10", "0", "10", "20", "30"))
+
+grid.arrange(plot3, plot4, nrow=2)
 ```
 
-FSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDSFSDKLFJKLDASJFLKDS
+Interestingly, the stacked bar chart on the top of the figure is reminiscent of the first plot I created which used longitude as the x-axis. I decided to go with the mirrored bar graph pictured on the bottom as the final shape for my redesign because I felt that it successfully represents the loss of troops I wanted to convey while sufficiently differentiating and contrasting between the troops lost during the advance phase and those lost during the defeat phase. However, since Minard’s original graphic was rich with information, I wanted to incorporate one more variable into my redesign. I chose temperature, since the loss of troops experienced during the retreat phase was largely due to the decreasing temperatures as winter began in Europe, and I wanted to provide some context for the troop loss where possible. The final design with adjusted labels, colours, and theme, is displayed in figure \@ref(fig:design4). 
 
-```{r, fig.height=8, fig.width=10,echo=FALSE, fig.fullwidth=TRUE}
+```{r design4, fig.cap="Final Redesign", fig.post = "H", echo = FALSE, fig.height=8.5, fig.width=10}
 #creating two separate datasets for each direction to combine in one plot
 a <- troops_sim2 %>% filter(direction == "A") %>%
   filter(group == 1)
 b <- troops_sim2 %>%
   filter(group == 1 & direction == '-R')
 
-ggplot() +
+final <- ggplot() +
   # advance
   geom_bar(data = a, mapping = aes(x = X, y = survivors), stat = "identity", fill = "#a0baba")  +
   # retreat
   geom_bar(data = b, mapping = aes(x = X, y = survivors, fill = temperature), stat = "identity") + 
-  scale_fill_gradient(low = "#4d5f90", high = "#bf7c7c") +
+  scale_fill_gradient(low = "#4d5f90", high = "#bf7c7c", breaks = c(0, -10, -20, -30, -38), labels = c("0", "-10", "-20", "-30", "-40")) +
   #labels
   labs(x = "Journey from Kaunas to Moscow and Back", y = "Troops", 
-       fill = "Temperature During Retreat (°C)", color = "Direction", title = "Napoleon's Russian Campaign", subtitle = "Original by Charles Minard") + 
+       fill = "Temperature During Retreat (°C)", color = "Direction", title = "Troops Lost During France's Invasion of Russia", subtitle = "(1812-1813)") + 
   #scale labels
   scale_x_continuous(breaks = c(1, 16), labels = c("Kaunas", "Moscow")) +
   scale_y_continuous(breaks = c(-10, 0, 10, 20, 30), labels = c("100,000", "0", "100,000", "200,000", "300,000")) +
@@ -113,10 +127,24 @@ ggplot() +
   annotate("text", label = "Advance", x = 12.5, y = 25, size = 5.5) + 
   #theme
   theme_wsj() +
-  theme(axis.title=element_text(size=18, face="bold"), legend.position="bottom", legend.title = element_text(size = 14)) 
+  theme(axis.title=element_text(size=18, face="bold"), legend.position="bottom", legend.title = element_text(size = 14), title =element_text(size=18, face="bold"))
 
+final
+
+ggsave("Final_redesign.pdf", plot = final, width=11, height=8.5, units = "in")
 ```
 
+In this redesign of Minard’s map of Napoleon's Russian campaign as a mirrored bar chart, the number of troops lost during the journey from Kaunas to Moscow is displayed on the top half of the x-axis, and the number of troops lost during the retreat from Moscow back to Kaunas is shown on the bottom half. The indices on the x-axis roughly indicate major cities the campaign passed through or geographical points where significant losses occurred based on the numbers provided in the original map. Finally, the temperatures provided in the data provided by Wilkinson were converted to degrees Celsius and roughly mapped onto the indices used for the x-axis. Colour was used to indicate the decrease in temperature as the army returned to their starting point, and the further losses they suffered because of this. 
 
+## Discussion
 
+The iterative design process allowed me to reflect on Minard’s original work and the information the graph provided, and the information it lacked. The idea to use colour to map temperatures on the retreat journey was inspired by heatmaps. Using this method, the viewer is clearly confronted with the relationship between troop loss and the decreasing temperatures during the retreat. However, based on this redesign and the original, it can be tempting to attribute many of the campaign’s losses to the temperature. This is likely due to the fact that the only information provided in the visualization which acts as a causal explanation for the troop's deaths is temperature, aside from general assumptions that viewers might make that the troops died during battles. Even then, only a small portion (around 20%) of the overall deaths during the campaign occurred during the retreat where temperature played an important role. The majority of deaths occurred during the advance phase on the way to Moscow, primarily due to disease and starvation rather than fighting [@Charters2018] Despite this, the original graphic does not give any indication as to how the troops were dying aside from the temperatures during the retreat. Additionally, people often misinterpret the temperatures displayed in the original graphic as being in degrees Celsius, however they are actually reported in the Réaumur scale [@gagnon2014]. Converting the temperatures from Réaumur to Celsius actually shows the weather on the retreat journey to be significantly colder than one would think based on original assumptions that the numbers were in Celsius. For example, the lowest temperature reported in the graphic -30 degrees Réaumur converts to -38 degrees Celsius, which is a difference of almost 10 degrees.
+
+Before implementing a mirror bar chart and making the decision to use indices to represent locations during the campaign journey, my original idea was to plot the loss of troops over time. While looking at the original graph for the best way to accomplish this, I realized Minard’s original graphic doesn’t provide much information regarding the time frame of the campaign, such as the passage of specific dates or even months. The only indication of time represented in the graph is the year of the campaign (1812-1813), and several dates ranging from October 18th to December 7th corresponding to temperature changes during the retreat. Instead, Minard seems to rely on the use of spatial information on the map to represent the passage of time, as well as the viewer’s existing knowledge about the event [@Landsteiner2018]. France’s invasion of Russia was a major event in French history, so even though Minard’s graphic was created 57 years after the fact, the intended French audience at that time likely had more general knowledge about the timeframes and historical features of the campaign than modern day viewers. This reliance on general knowledge about the invasion might also be why there is no other causal explanations for the troops deaths aside from temperature.   
+
+While Minard’s graphic depicting France’s invasion of Russia is an outstanding example of statistical graphing and information visualization, it does require some historical context and time spent on the viewer’s part to fully understand and appreciate all the components put into it. The goal of my redesign was not to oversimplify or reduce this information, but to make the representation of lives lost during the campaign more approachable to a newer modern-day audience using the widely recognizable bar chart format. Finally, I wanted to use colour and modern graphing techniques inspired by heatmaps to highlight the role that temperature played in the loss of troops during the retreat. 
+
+\newpage
+
+# References
 
